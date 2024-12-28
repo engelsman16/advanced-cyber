@@ -1,4 +1,4 @@
 key,type,encoding,value
 wifi_storage,namespace,,
-ssid,data,string,"x"
-password,data,string,"x"
+ssid,data,string,"Combilan IoT"
+password,data,string,"Combolan1!"
