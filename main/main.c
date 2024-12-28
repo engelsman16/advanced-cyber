@@ -169,6 +169,11 @@ esp_err_t read_wifi_credentials_from_nvs(char* nvs_namespace, char* ssid, char* 
         status = err;
     }
 
+    if (strlen(ssid) > 0 && strlen(password) > 0)
+    {
+        ESP_LOGI(NVS_TAG, "Successfully read ssid and password from NVS");
+    }
+
     nvs_close(nvs_handle);
 
     return status;
