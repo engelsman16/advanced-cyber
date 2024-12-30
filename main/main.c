@@ -7,9 +7,9 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-
 #include "lwip/err.h"
 #include "lwip/sys.h"
+#include "esp_http_client.h"
 
 #define WIFI_SUCCESS 1 << 0
 #define WIFI_FAILURE 1 << 1
@@ -21,6 +21,12 @@ static int s_retry_num = 0;
 
 static const char *WIFI_TAG = "WIFI-LOGGER";
 static const char *NVS_TAG = "NVS-LOGGER";
+
+// Define the POST request endpoint URL
+#define POST_URL "http://your-server-url.com/api/credentials"
+
+// Structure to hold the HTTP client handle
+esp_http_client_handle_t client;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
@@ -185,6 +191,45 @@ esp_err_t read_wifi_credentials_from_nvs(char *nvs_namespace, char *ssid, char *
     return status;
 }
 
+// Function to send the POST request
+esp_err_t send_post_request(char *ssid, char *password)
+{
+    esp_http_client_config_t config = {
+        .url = POST_URL,
+    };
+
+    client = esp_http_client_init(&config);
+
+    // Set HTTP request method to POST
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+
+    // Set headers if needed (optional)
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    // Prepare data to send
+    char post_data[128];
+    snprintf(post_data, sizeof(post_data), "{\"ssid\": \"%s\", \"password\": \"%s\"}", ssid, password);
+
+    // Set POST body
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+
+    // Perform the HTTP POST request
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(WIFI_TAG, "HTTP POST request sent successfully, status code: %d", esp_http_client_get_status_code(client));
+    }
+    else
+    {
+        ESP_LOGE(WIFI_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }
+
+    // Cleanup
+    esp_http_client_cleanup(client);
+
+    return err;
+}
+
 void app_main(void)
 {
     esp_err_t wifi_status = WIFI_FAILURE;
@@ -202,4 +247,7 @@ void app_main(void)
         ESP_LOGE(WIFI_TAG, "Failed to associate to AP, terminating...");
         esp_restart();
     }
+
+    // Send POST request after successful Wi-Fi connection
+    send_post_request(ssid, password);
 }
