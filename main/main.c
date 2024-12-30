@@ -7,9 +7,9 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+
 #include "lwip/err.h"
 #include "lwip/sys.h"
-#include "esp_http_client.h"
 
 #define WIFI_SUCCESS 1 << 0
 #define WIFI_FAILURE 1 << 1
@@ -22,60 +22,53 @@ static int s_retry_num = 0;
 static const char *WIFI_TAG = "WIFI-LOGGER";
 static const char *NVS_TAG = "NVS-LOGGER";
 
-// Define the POST request endpoint URL
-#define POST_URL "http://your-server-url.com/api/credentials"
 
-// Structure to hold the HTTP client handle
-esp_http_client_handle_t client;
-
-static void wifi_event_handler(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
+static void wifi_event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
 {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
-    {
-        ESP_LOGI(WIFI_TAG, "Connecting to AP...");
-        esp_wifi_connect();
-    }
-    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
-    {
-        if (s_retry_num < MAX_FAILURES)
-        {
-            ESP_LOGI(WIFI_TAG, "Reconnecting to AP...");
-            esp_wifi_connect();
-            s_retry_num++;
-        }
-        else
-        {
-            xEventGroupSetBits(wifi_event_group, WIFI_FAILURE);
-        }
-    }
+	if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
+	{
+		ESP_LOGI(WIFI_TAG, "Connecting to AP...");
+		esp_wifi_connect();
+	} else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
+	{
+		if (s_retry_num < MAX_FAILURES)
+		{
+			ESP_LOGI(WIFI_TAG, "Reconnecting to AP...");
+			esp_wifi_connect();
+			s_retry_num++;
+		} else {
+			xEventGroupSetBits(wifi_event_group, WIFI_FAILURE);
+		}
+	}
 }
 
-static void ip_event_handler(void *arg, esp_event_base_t event_base,
-                             int32_t event_id, void *event_data)
+static void ip_event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
 {
-    if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
-    {
-        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
+	if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
+	{
+        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(WIFI_TAG, "STA IP: " IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         xEventGroupSetBits(wifi_event_group, WIFI_SUCCESS);
     }
+
 }
 
-esp_err_t connect_wifi(char *ssid, char *password)
+esp_err_t connect_wifi(char* ssid, char* password)
 {
-    int status = WIFI_FAILURE;
+	int status = WIFI_FAILURE;
 
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+	ESP_ERROR_CHECK(esp_netif_init());
+	ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    esp_netif_create_default_wifi_sta();
+	esp_netif_create_default_wifi_sta();
 
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-    wifi_event_group = xEventGroupCreate();
+	wifi_event_group = xEventGroupCreate();
 
     esp_event_handler_instance_t wifi_handler_event_instance;
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
@@ -95,15 +88,16 @@ esp_err_t connect_wifi(char *ssid, char *password)
         .sta = {
             .ssid = "",
             .password = "",
-            .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
             .pmf_cfg = {
                 .capable = true,
-                .required = false},
+                .required = false
+            },
         },
     };
 
-    strncpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
-    strncpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
+    strncpy((char*)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
+    strncpy((char*)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
@@ -112,23 +106,18 @@ esp_err_t connect_wifi(char *ssid, char *password)
     ESP_LOGI(WIFI_TAG, "STA initialization complete");
 
     EventBits_t bits = xEventGroupWaitBits(wifi_event_group,
-                                           WIFI_SUCCESS | WIFI_FAILURE,
-                                           pdFALSE,
-                                           pdFALSE,
-                                           portMAX_DELAY);
+            WIFI_SUCCESS | WIFI_FAILURE,
+            pdFALSE,
+            pdFALSE,
+            portMAX_DELAY);
 
-    if (bits & WIFI_SUCCESS)
-    {
+    if (bits & WIFI_SUCCESS) {
         ESP_LOGI(WIFI_TAG, "Connected to ap");
         status = WIFI_SUCCESS;
-    }
-    else if (bits & WIFI_FAILURE)
-    {
+    } else if (bits & WIFI_FAILURE) {
         ESP_LOGW(WIFI_TAG, "Failed to connect to ap");
         status = WIFI_FAILURE;
-    }
-    else
-    {
+    } else {
         ESP_LOGE(WIFI_TAG, "UNEXPECTED EVENT");
         status = WIFI_FAILURE;
     }
@@ -145,9 +134,8 @@ esp_err_t nvs_init()
     esp_err_t status = ESP_OK;
 
     esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
-        err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    err = nvs_flash_init();
     }
 
     ESP_ERROR_CHECK(err);
@@ -155,7 +143,7 @@ esp_err_t nvs_init()
     return status;
 }
 
-esp_err_t read_wifi_credentials_from_nvs(char *nvs_namespace, char *ssid, char *password, size_t ssid_size, size_t password_size)
+esp_err_t read_wifi_credentials_from_nvs(char* nvs_namespace, char* ssid, char* password, size_t ssid_size, size_t password_size)
 {
     nvs_handle_t nvs_handle;
     esp_err_t status = ESP_OK;
@@ -191,48 +179,9 @@ esp_err_t read_wifi_credentials_from_nvs(char *nvs_namespace, char *ssid, char *
     return status;
 }
 
-// Function to send the POST request
-esp_err_t send_post_request(char *ssid, char *password)
-{
-    esp_http_client_config_t config = {
-        .url = POST_URL,
-    };
-
-    client = esp_http_client_init(&config);
-
-    // Set HTTP request method to POST
-    esp_http_client_set_method(client, HTTP_METHOD_POST);
-
-    // Set headers if needed (optional)
-    esp_http_client_set_header(client, "Content-Type", "application/json");
-
-    // Prepare data to send
-    char post_data[128];
-    snprintf(post_data, sizeof(post_data), "{\"ssid\": \"%s\", \"password\": \"%s\"}", ssid, password);
-
-    // Set POST body
-    esp_http_client_set_post_field(client, post_data, strlen(post_data));
-
-    // Perform the HTTP POST request
-    esp_err_t err = esp_http_client_perform(client);
-    if (err == ESP_OK)
-    {
-        ESP_LOGI(WIFI_TAG, "HTTP POST request sent successfully, status code: %d", esp_http_client_get_status_code(client));
-    }
-    else
-    {
-        ESP_LOGE(WIFI_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
-    }
-
-    // Cleanup
-    esp_http_client_cleanup(client);
-
-    return err;
-}
-
 void app_main(void)
 {
-    esp_err_t wifi_status = WIFI_FAILURE;
+	esp_err_t wifi_status = WIFI_FAILURE;
 
     ESP_ERROR_CHECK(nvs_init());
 
@@ -241,13 +190,10 @@ void app_main(void)
 
     ESP_ERROR_CHECK(read_wifi_credentials_from_nvs("wifi_storage", ssid, password, sizeof(ssid), sizeof(password)));
 
-    wifi_status = connect_wifi(ssid, password);
+	wifi_status = connect_wifi(ssid, password);
     if (wifi_status != WIFI_SUCCESS)
-    {
+	{
         ESP_LOGE(WIFI_TAG, "Failed to associate to AP, terminating...");
         esp_restart();
-    }
-
-    // Send POST request after successful Wi-Fi connection
-    send_post_request(ssid, password);
+	}
 }
