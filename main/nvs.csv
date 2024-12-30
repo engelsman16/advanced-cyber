@@ -1,4 +1,0 @@
-key,type,encoding,value
-wifi_storage,namespace,,
-ssid,data,string,"x"
-password,data,string,"x"
