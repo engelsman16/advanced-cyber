@@ -1,9 +1,9 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=engelsman16_advanced-cyber&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=engelsman16_advanced-cyber)[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=engelsman16_advanced-cyber&metric=bugs)](https://sonarcloud.io/summary/new_code?id=engelsman16_advanced-cyber)[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=engelsman16_advanced-cyber&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=engelsman16_advanced-cyber)
+
+
 # Docs 
 
 These docs assume you have a running esp-idf env with terminal.
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=engelsman16_advanced-cyber&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=engelsman16_advanced-cyber)
-
 
 * This project uses nvs storage for wifi and https credentials, for this make sure to generate the proper bins using the commands below. 
 
