@@ -2,7 +2,7 @@
 /build
 
 # Ignore nvs partition table
-main/nvs.csv
+/main/nvs.csv
 
 # Ignore certificates
-main/certificates/cert.pem
+/main/certificates/cert.pem
