@@ -12,7 +12,7 @@ An example cvs file:
 | password     | data      | string   | "x"     |
 
 ```py
-~/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate "../main/nvs.csv" wifi_storage.bin 16384
+~/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate "../main/nvs.csv" certs.bin 16384
 ```
 
 ### Build

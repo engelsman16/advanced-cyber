@@ -1,6 +1,6 @@
 key,type,encoding,value
 certs,namespace,,
-cert,file,string,C:...
+cert,file,string,C:/Users/teune/Documents/School/embedded/wifi/main/certificates/cert.pem
 wifi_storage,namespace,,
-ssid,data,string,"x"
-password,data,string,"x"
+ssid,data,string,"zed"
+password,data,string,"9Tu2689|"

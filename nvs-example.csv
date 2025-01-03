@@ -1,0 +1,6 @@
+key,type,encoding,value
+certs,namespace,,
+cert,file,string,FilePath
+wifi_storage,namespace,,
+ssid,data,string,""
+password,data,string,""

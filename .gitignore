@@ -1,1 +1,8 @@
+# Ignore build directory
 /build
+
+# Ignore nvs partition table
+main/nvs.csv
+
+# Ignore certificates
+main/certificates/cert.pem
