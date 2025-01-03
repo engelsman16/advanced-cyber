@@ -41,4 +41,8 @@ void app_main(void)
     }
 
     xTaskCreate(&https_get_task, "https_get_task", 8192, (void*)my_cert, 5, NULL);
+
+    free(password);
+    free(ssid);
+    free(my_cert);
 }
