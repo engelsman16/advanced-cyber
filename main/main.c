@@ -7,6 +7,8 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "esp_task_wdt.h"
+
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
@@ -16,8 +18,23 @@
 #include "http_helper.h"
 #include "wifi_helper.h"
 
+#define TWDT_TIMEOUT_MS 3000
+
+const char *TAG = "main";
+
 void app_main(void)
 {
+#if !CONFIG_ESP_TASK_WDT_INIT
+    
+    esp_task_wdt_config_t twdt_config = {
+        .timeout_ms = TWDT_TIMEOUT_MS,
+        .idle_core_mask = (1 << CONFIG_FREERTOS_NUMBER_OF_CORES) - 1,  
+        .trigger_panic = false,
+    };
+    ESP_ERROR_CHECK(esp_task_wdt_init(&twdt_config));
+    ESP_LOGI(TAG, "TWDT initialized\n");
+#endif 
+
     esp_err_t wifi_status = WIFI_FAILURE;
 
     ESP_ERROR_CHECK(nvs_init());
@@ -45,4 +62,9 @@ void app_main(void)
     free(password);
     free(ssid);
     free(my_cert);
+
+#if !CONFIG_ESP_TASK_WDT_INIT
+    ESP_ERROR_CHECK(esp_task_wdt_deinit());
+    ESP_LOGI(TAG, "TWDT deinitialized\n");
+#endif
 }

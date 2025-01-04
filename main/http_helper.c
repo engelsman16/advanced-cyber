@@ -3,7 +3,8 @@
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
-    switch (evt->event_id) {
+    switch (evt->event_id) 
+    {
     case HTTP_EVENT_ERROR:
         ESP_LOGI(HTTPS_TAG, "HTTP_EVENT_ERROR");
         break;
@@ -18,7 +19,8 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
         break;
     case HTTP_EVENT_ON_DATA:
         ESP_LOGI(HTTPS_TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-        if (!esp_http_client_is_chunked_response(evt->client)) {
+        if (!esp_http_client_is_chunked_response(evt->client)) 
+        {
             printf("%.*s", evt->data_len, (char*)evt->data);
         }
         break;
@@ -38,8 +40,10 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 void https_get_task(void *pvParameters)
 {
     const char *cert_pem = (const char *)pvParameters;
-    esp_http_client_config_t config = {
-        .url = "x",
+
+    esp_http_client_config_t config = 
+    {
+        .url = "https://google.com",
         .event_handler = _http_event_handler,
         .cert_pem = cert_pem,
         .timeout_ms = 5000,
@@ -49,7 +53,8 @@ void https_get_task(void *pvParameters)
 
     esp_err_t err = esp_http_client_perform(client);
 
-    if (err != ESP_OK) {
+    if (err != ESP_OK) 
+    {
         ESP_LOGE(HTTPS_TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
 
