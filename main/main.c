@@ -17,27 +17,22 @@
 #include "log_helper.h"
 #include "http_helper.h"
 #include "wifi_helper.h"
+#include "watchdog_helper.h"
 
-#define TWDT_TIMEOUT_MS 3000
+bool has_triggered = false;
 
-const char *TAG = "main";
+
+void esp_task_wdt_isr_user_handler(void)
+{
+    has_triggered = true;
+}
 
 void app_main(void)
 {
-#if !CONFIG_ESP_TASK_WDT_INIT
-    
-    esp_task_wdt_config_t twdt_config = {
-        .timeout_ms = TWDT_TIMEOUT_MS,
-        .idle_core_mask = (1 << CONFIG_FREERTOS_NUMBER_OF_CORES) - 1,  
-        .trigger_panic = false,
-    };
-    ESP_ERROR_CHECK(esp_task_wdt_init(&twdt_config));
-    ESP_LOGI(TAG, "TWDT initialized\n");
-#endif 
+    ESP_ERROR_CHECK(watchdog_init());
+    ESP_ERROR_CHECK(nvs_init());
 
     esp_err_t wifi_status = WIFI_FAILURE;
-
-    ESP_ERROR_CHECK(nvs_init());
 
     char* password;
     char* ssid;
@@ -59,12 +54,14 @@ void app_main(void)
 
     xTaskCreate(&https_get_task, "https_get_task", 8192, (void*)my_cert, 5, NULL);
 
+    xTaskCreate(&watch_dog_task, "watch_dog_task", 2048, NULL, 5, NULL);
+
     free(password);
     free(ssid);
     free(my_cert);
 
-#if !CONFIG_ESP_TASK_WDT_INIT
-    ESP_ERROR_CHECK(esp_task_wdt_deinit());
-    ESP_LOGI(TAG, "TWDT deinitialized\n");
-#endif
+    vTaskDelay(600000 / portTICK_PERIOD_MS);
+
+    ESP_ERROR_CHECK(watchdog_deinit());
+    ESP_ERROR_CHECK(nvs_flash_deinit());
 }

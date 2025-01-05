@@ -32,7 +32,5 @@ esptool.py -p COM3 -b 460800 --before default_reset --after hard_reset --chip es
 idf.py monitor -p COM3
 ```
 
-### Watchdog MENUCONFIG
-The code will intialize a watchdog if not defined, however it is recomended to enable it within the bootloader config.
-
-![watchdog in bootloader config](./images/watchdog-bootloader.png)
+### Watchdog initialize disable
+Disable the initalization of the Task Watchdog Timer (TWDT) by default. 

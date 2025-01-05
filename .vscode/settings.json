@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "random": "c"
+        "random": "c",
+        "watchdog_helper.h": "c",
+        "task.h": "c",
+        "esp_log.h": "c",
+        "esp_tls_wolfssl.h": "c",
+        "event_groups.h": "c"
     }
 }
