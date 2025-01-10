@@ -10,4 +10,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt);
 
 void https_get_task(void *pvParameters);
 
+void https_post_task(void *pvParameters);
+
 #endif // HTTP_HELPER_H

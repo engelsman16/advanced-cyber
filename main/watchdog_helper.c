@@ -15,10 +15,11 @@ void watch_dog_task(void *pvParameter)
         {
             ESP_LOGE(WATCHDOG_TAG, "TWDT triggered");
             has_triggered = false;
+            watch_dog_trigger_count++;
         }
 
         ESP_ERROR_CHECK(esp_task_wdt_reset());
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(11000 / portTICK_PERIOD_MS);
     }
 
     ESP_ERROR_CHECK(esp_task_wdt_delete(NULL));

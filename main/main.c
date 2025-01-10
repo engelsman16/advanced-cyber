@@ -20,7 +20,7 @@
 #include "watchdog_helper.h"
 
 bool has_triggered = false;
-
+int watch_dog_trigger_count = 0;
 
 void esp_task_wdt_isr_user_handler(void)
 {
@@ -37,8 +37,9 @@ void app_main(void)
     char* password;
     char* ssid;
     char* my_cert;
+    char* apikey;
 
-    if (load_nvs_value("wifi_storage", "password", &password) != ESP_OK || load_nvs_value("wifi_storage", "ssid", &ssid) != ESP_OK || load_nvs_value("certs", "cert", &my_cert) != ESP_OK) 
+    if (load_nvs_value("storage", "password", &password) != ESP_OK || load_nvs_value("storage", "ssid", &ssid) != ESP_OK || load_nvs_value("certs", "cert", &my_cert) != ESP_OK || load_nvs_value("storage", "apikey", &apikey) != ESP_OK)
     {
         ESP_LOGE("ERROR", "Failed to load from NVS");
         esp_restart();
@@ -52,13 +53,14 @@ void app_main(void)
         esp_restart();
     }
 
-    xTaskCreate(&https_get_task, "https_get_task", 8192, (void*)my_cert, 5, NULL);
+    xTaskCreate(&https_post_task, "https_post_task", 8192, NULL, 5, NULL);    
 
     xTaskCreate(&watch_dog_task, "watch_dog_task", 2048, NULL, 5, NULL);
 
     free(password);
     free(ssid);
     free(my_cert);
+    free(apikey);
 
     vTaskDelay(600000 / portTICK_PERIOD_MS);
 

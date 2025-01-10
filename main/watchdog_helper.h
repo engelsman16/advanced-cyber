@@ -5,9 +5,10 @@
 #include "freertos/task.h"
 #include "esp_task_wdt.h"
 
-#define TWDT_TIMEOUT_MS 3000
+#define TWDT_TIMEOUT_MS 10000
 
 extern bool has_triggered;
+extern int watch_dog_trigger_count;
 
 void watch_dog_task(void *pvParameter);
 
